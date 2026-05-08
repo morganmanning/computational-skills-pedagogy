@@ -1,0 +1,50 @@
+\begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}[t]{>{}lllrl}
+\toprule
+\textbf{Metric} & \textbf{Block} & \textbf{Covariates} & \textbf{F-test p} & \textbf{}\\
+\midrule
+ & Prior_Preparation & High.school.particip + Computer.savviness & 0.0000 & ***\\
+
+ & Motivation & Perseverance + Effort & 0.0004 & ***\\
+
+ & Resourcefulness & External.help_1 + External.help_2 + External.help_3 & 0.0005 & ***\\
+
+ & Demographics & Gender + Race + Age & 0.0434 & *\\
+
+ & Future_Application & Dream.job + Job.search & 0.0657 & .\\
+
+\multirow[t]{-6}{*}{\raggedright\arraybackslash \em{Anxiety}} & Resource_Access & Computer.age + Laptop.issues & 0.3863 & \\
+\cmidrule{1-5}
+ & Motivation & Perseverance + Effort & 0.0002 & ***\\
+
+ & Future_Application & Dream.job + Job.search & 0.0005 & ***\\
+
+ & Demographics & Gender + Race + Age & 0.0402 & *\\
+
+ & Resource_Access & Computer.age + Laptop.issues & 0.1329 & \\
+
+ & Resourcefulness & External.help_1 + External.help_2 + External.help_3 & 0.1907 & \\
+
+\multirow[t]{-6}{*}{\raggedright\arraybackslash \em{Math Skills}} & Prior_Preparation & High.school.particip + Computer.savviness & 0.2459 & \\
+\cmidrule{1-5}
+ & Future_Application & Dream.job + Job.search & 0.0015 & **\\
+
+ & Prior_Preparation & High.school.particip + Computer.savviness & 0.0066 & **\\
+
+ & Resourcefulness & External.help_1 + External.help_2 + External.help_3 & 0.0105 & *\\
+
+ & Demographics & Gender + Race + Age & 0.0694 & .\\
+
+ & Motivation & Perseverance + Effort & 0.2171 & \\
+
+\multirow[t]{-6}{*}{\raggedright\arraybackslash \em{Computing}} & Resource_Access & Computer.age + Laptop.issues & 0.8960 & \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[para]
+\item \textit{Note: } 
+\item F-test comparing block model vs. base model. . p < 0.1, * p < 0.05, ** p < 0.01, *** p < 0.001
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

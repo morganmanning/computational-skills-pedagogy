@@ -1,0 +1,98 @@
+\begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}[t]{>{}llrrrrl}
+\toprule
+\textbf{Metric} & \textbf{Term} & \textbf{$\beta$} & \textbf{SE} & \textbf{t} & \textbf{p} & \textbf{}\\
+\midrule
+ & (Intercept) & 3.849 & 0.193 & 19.978 & 0.0000 & ***\\
+
+ & R Class only & 0.163 & 0.263 & 0.618 & 0.5386 & \\
+
+ & R Class before advanced & -0.071 & 0.437 & -0.162 & 0.8717 & \\
+
+ & R Class concurrent with advanced & -0.112 & 0.345 & -0.325 & 0.7461 & \\
+
+ & Time: post & -0.941 & 0.237 & -3.965 & 0.0002 & ***\\
+
+ & Advanced math in high school: Yes & -0.444 & 0.194 & -2.281 & 0.0257 & *\\
+
+ & Computer savviness (linear trend) & -0.491 & 0.388 & -1.266 & 0.2100 & \\
+
+ & Computer savviness (quadratic trend) & 0.938 & 0.359 & 2.610 & 0.0112 & *\\
+
+ & Computer savviness & -0.571 & 0.186 & -3.070 & 0.0031 & **\\
+
+ & Computer savviness & 0.238 & 0.236 & 1.007 & 0.3174 & \\
+
+ & R Class only:Time: post & -0.059 & 0.353 & -0.167 & 0.8682 & \\
+
+ & R Class before advanced:Time: post & -0.059 & 0.613 & -0.096 & 0.9238 & \\
+
+\multirow[t]{-13}{*}{\raggedright\arraybackslash \em{Anxiety}} & R Class concurrent with advanced:Time: post & -0.225 & 0.465 & -0.485 & 0.6291 & \\
+\cmidrule{1-7}
+ & (Intercept) & 2.155 & 0.188 & 11.453 & 0.0000 & ***\\
+
+ & R Class only & 0.285 & 0.224 & 1.274 & 0.2071 & \\
+
+ & R Class before advanced & -0.532 & 0.395 & -1.345 & 0.1832 & \\
+
+ & R Class concurrent with advanced & 0.140 & 0.322 & 0.435 & 0.6651 & \\
+
+ & Time: post & 1.265 & 0.210 & 6.031 & 0.0000 & ***\\
+
+ & Perseverance (linear trend) & -0.215 & 0.166 & -1.289 & 0.2019 & \\
+
+ & Perseverance (quadratic trend) & 0.159 & 0.160 & 0.993 & 0.3246 & \\
+
+ & Perseverance & 0.041 & 0.142 & 0.288 & 0.7741 & \\
+
+ & Effort required (linear trend) & -1.053 & 0.356 & -2.961 & 0.0043 & **\\
+
+ & Effort required (quadratic trend) & -0.351 & 0.268 & -1.310 & 0.1948 & \\
+
+ & Effort required & -0.751 & 0.160 & -4.684 & 0.0000 & ***\\
+
+ & R Class only:Time: post & -0.550 & 0.312 & -1.764 & 0.0824 & .\\
+
+ & R Class before advanced:Time: post & 0.110 & 0.541 & 0.204 & 0.8392 & \\
+
+\multirow[t]{-14}{*}{\raggedright\arraybackslash \em{Math Skills}} & R Class concurrent with advanced:Time: post & -0.369 & 0.411 & -0.898 & 0.3722 & \\
+\cmidrule{1-7}
+ & (Intercept) & 1.657 & 0.186 & 8.908 & 0.0000 & ***\\
+
+ & R Class only & -0.231 & 0.203 & -1.136 & 0.2602 & \\
+
+ & R Class before advanced & 0.321 & 0.348 & 0.922 & 0.3601 & \\
+
+ & R Class concurrent with advanced & 0.255 & 0.272 & 0.940 & 0.3505 & \\
+
+ & Time: post & 1.477 & 0.183 & 8.063 & 0.0000 & ***\\
+
+ & Interest in computational career (linear trend) & 0.383 & 0.293 & 1.309 & 0.1951 & \\
+
+ & Interest in computational career (quadratic trend) & 0.397 & 0.242 & 1.636 & 0.1066 & \\
+
+ & Interest in computational career & -0.031 & 0.121 & -0.254 & 0.8002 & \\
+
+ & Interest in computational career & -0.014 & 0.215 & -0.067 & 0.9470 & \\
+
+ & R skills for job search (linear trend) & 0.265 & 0.219 & 1.209 & 0.2310 & \\
+
+ & R skills for job search (quadratic trend) & -0.307 & 0.196 & -1.562 & 0.1231 & \\
+
+ & R skills for job search & 0.297 & 0.207 & 1.437 & 0.1554 & \\
+
+ & R Class only:Time: post & 0.694 & 0.273 & 2.543 & 0.0134 & *\\
+
+ & R Class before advanced:Time: post & -0.255 & 0.473 & -0.539 & 0.5914 & \\
+
+\multirow[t]{-15}{*}{\raggedright\arraybackslash \em{Computing}} & R Class concurrent with advanced:Time: post & 0.064 & 0.359 & 0.179 & 0.8585 & \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[para]
+\item \textit{Note: } 
+\item Reference level: Advanced only. Best block selected by lowest F-test p-value vs. base model. Anxiety: Prior\_Preparation (F = 7.01, p = 0); Computing: Future\_Application (F = 3.823, p = 0.0015); Math Skills: Motivation (F = 5.287, p = 2e-04). . p < 0.1, * p < 0.05, ** p < 0.01, *** p < 0.001
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
