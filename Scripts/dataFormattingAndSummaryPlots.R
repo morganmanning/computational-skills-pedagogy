@@ -11,6 +11,7 @@ library(kableExtra)
 
 # set up
 setwd("~/Desktop/pedagogy/Data")
+rm(list = ls())
 
 
 ################################################################################
@@ -208,6 +209,10 @@ anxiety_post_cols <- c("Anxiety.2_1", "Anxiety.2_2")
 
 survey$Anxiety_pre <- rowMeans(survey[, anxiety_pre_cols], na.rm = TRUE)
 survey$Anxiety_post <- rowMeans(survey[, anxiety_post_cols], na.rm = TRUE)
+
+# reflect anxiety so higher = better (1-5 scale, so 6 - x)
+survey$Anxiety_pre <- 6 - survey$Anxiety_pre
+survey$Anxiety_post <- 6 - survey$Anxiety_post
 
 # # R skills composite scores
 # r_skills_pre_cols <- grep("^R.skills.1_", names(survey), value = TRUE)

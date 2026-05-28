@@ -8,24 +8,35 @@ library(dplyr)
 library(emmeans)
 library(ggplot2)
 library(kableExtra)
+library(showtext)
 
-setwd("~/Dropbox/UF/Research/Chapter 3 (R)/Data")
-
+setwd("Data")
+rm(list = ls())
 
 ################################################################################
 ############################ SHARED AESTHETICS ################################
 ################################################################################
 
+font_add("Times New Roman", "C:/Windows/Fonts/times.ttf")
+showtext_auto(FALSE)
+
 base_theme <- theme_bw(base_family = "Times New Roman") +
     theme(
         legend.position = "top",
-        plot.title = element_text(hjust = 0.5),
-        text = element_text(family = "Times New Roman"),
+        text = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 15),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        plot.caption = element_text(size = 10),
         panel.grid.major = element_line(color = "gray85"),
         panel.grid.minor = element_line(color = "gray95"),
         panel.background = element_rect(fill = "white"),
         strip.background = element_rect(fill = "gray95")
     )
+
 
 # keeping this consistent with the palette_4 colors used elsewhere
 palette_4grp <- c(
@@ -62,10 +73,10 @@ survey[survey == ""] <- NA
 
 # only one per particip
 survey <- survey %>%
+    mutate(RecordedDate = as.POSIXct(RecordedDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")) %>%
     group_by(Participant.ID) %>%
-    slice_max(order_by = as.POSIXct(RecordedDate), n = 1, with_ties = FALSE) %>%
+    slice_max(order_by = RecordedDate, n = 1, with_ties = FALSE) %>%
     ungroup()
-
 
 ################################################################################
 # PIVOT LONG
@@ -101,6 +112,10 @@ survey_long <- survey %>%
     ) %>%
     filter(group_4 != "None", !is.na(group_4)) # drop unclassified rows
 
+# reflect anxiety onto the 1-5 scale so higher = better, matching the other metrics
+survey_long <- survey_long %>%
+    mutate(Score = ifelse(Metric == "Anxiety", 6 - Score, Score))
+
 
 ################################################################################
 # SAMPLE SIZES
@@ -124,9 +139,9 @@ group_n <- group_n_counts %>%
 
 metrics_plot <- c("Anxiety", "Math Skills", "Computing")
 lm_models <- list()
-lm_coefs <- data.frame()
-emmeans_results <- data.frame()
-pairwise_results <- data.frame()
+lm_coefs <- tibble()
+emmeans_results <- tibble()
+pairwise_results <- tibble()
 
 for (metric in metrics_plot) {
     cat("\n----------------------------------------\n")
@@ -164,13 +179,13 @@ for (metric in metrics_plot) {
         stringsAsFactors = FALSE
     )
     rownames(coef_df) <- NULL
-    lm_coefs <- rbind(lm_coefs, coef_df)
+    lm_coefs <- bind_rows(lm_coefs, coef_df)
 
     # emmeans: model-predicted means at each group x time combination
     em <- emmeans(model, ~ group_4 * Time) %>%
         as.data.frame() %>%
         mutate(Metric = metric)
-    emmeans_results <- rbind(emmeans_results, em)
+    emmeans_results <- bind_rows(emmeans_results, em)
 
     # tukey-adjusted pairwise comparisons between groups, collapsing over time
     pairs_df <- pairs(emmeans(model, ~group_4), adjust = "tukey") %>%
@@ -185,7 +200,7 @@ for (metric in metrics_plot) {
                 TRUE ~ ""
             )
         )
-    pairwise_results <- rbind(pairwise_results, pairs_df)
+    pairwise_results <- bind_rows(pairwise_results, pairs_df)
 
     cat("\n  Tukey pairwise comparisons between groups:\n")
     print(as.data.frame(pairs_df))
@@ -234,6 +249,7 @@ emmeans_results <- emmeans_results %>%
         ))
     )
 emmeans_results <- emmeans_results[emmeans_results$group_4 != "None" & !is.na(emmeans_results$group_4), ] # drop unclassified rows
+
 
 ################################################################################
 # RAW SCORE SUMMARIES
@@ -295,7 +311,21 @@ ggsave("../Figures/4Group_RawMeans_PrePost.png",
 ################################################################################
 # PLOT 2: EMMEANS: model-predicted means, same layout as Plot 1
 ################################################################################
+emmeans_results <- emmeans_results %>%
+    mutate(
+        Metric = factor(
+            Metric,
+            levels = c("Anxiety", "Math Skills", "Computing")
+        )
+    )
 
+em_bracket_coords <- em_bracket_coords %>%
+    mutate(
+        Metric = factor(
+            Metric,
+            levels = c("Anxiety", "Math Skills", "Computing")
+        )
+    )
 p_emmeans <- ggplot(
     emmeans_results,
     aes(x = Time, y = emmean, color = group_4, group = group_4)
@@ -397,8 +427,8 @@ ggsave("../Figures/4Group_ChangeScores.png",
 # PAIRWISE INTERACTION CONTRASTS: which groups differ in pre-post change?
 ################################################################################
 
-pairs_interaction <- data.frame()
-full_interaction <- data.frame()
+pairs_interaction <- tibble()
+full_interaction <- tibble()
 
 for (metric in metrics_plot) {
     model <- lm_models[[metric]]
@@ -437,30 +467,33 @@ for (metric in metrics_plot) {
             grp2 = trimws(sub(".* - ", "", group_4_pairwise))
         )
 
-    pairs_interaction <- rbind(pairs_interaction, ic)
-    full_interaction <- rbind(full_interaction, full)
+    pairs_interaction <- bind_rows(pairs_interaction, ic)
+    full_interaction <- bind_rows(full_interaction, full)
 }
 
 ################################################################################
 # BRACKET COORDINATES: RAW MEANS AND EMMEANS PLOTS
 ################################################################################
 
-get_post_x <- function(p, palette) {
-    pb <- ggplot_build(p)
-    # layer order: geom_line = 1, geom_errorbar = 2, geom_point = 3
-    pt <- pb$data[[3]]
-    # post is the 2nd level of the Time factor -> discrete x position rounds to 2
-    pt %>%
-        filter(round(x) == 2) %>%
-        group_by(colour) %>%
-        summarise(x = mean(x), .groups = "drop") %>%
-        left_join(
-            tibble(colour = unname(palette), group_4 = names(palette)),
-            by = "colour"
-        ) %>%
-        filter(!is.na(group_4)) %>%
-        deframe_xy()
-}
+group_levels <- c(
+    "Advanced only",
+    "R Class only",
+    "R Class before advanced",
+    "R Class concurrent with advanced"
+)
+
+# mimic position_dodge(width = 0.3)
+dodge_width <- 0.3
+offsets <- seq(
+    -dodge_width / 2,
+    dodge_width / 2,
+    length.out = length(group_levels)
+)
+
+x_at_post_em <- setNames(2 + offsets, group_levels)
+x_at_post_raw <- setNames(2 + offsets, group_levels)
+
+print(x_at_post_em)
 
 # helper: return named vector group -> x
 deframe_xy <- function(df) {

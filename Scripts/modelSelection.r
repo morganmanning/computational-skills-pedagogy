@@ -4,9 +4,13 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(kableExtra)
+library(showtext)
 
-setwd("~/Dropbox/UF/Research/Chapter 3 (R)/Data")
+font_add("Times New Roman", "C:/Windows/Fonts/times.ttf")
+showtext_auto(FALSE)
 
+setwd("Data")
+rm(list = ls())
 
 ################################################################################
 ############################ DATA PREPARATION ##################################
@@ -52,7 +56,7 @@ for (v in ordered_vars) {
     k <- nlevels(survey[[v]])
     if (k > 2) {
         max_deg <- min(2, k - 1)
-        contrasts(survey[[v]]) <- contr.poly(k)[, 1:max_deg, drop = FALSE]
+        contrasts(survey[[v]], how.many = max_deg) <- contr.poly(k)[, 1:max_deg, drop = FALSE]
     }
 }
 
@@ -66,7 +70,7 @@ fix_ordered_contrasts <- function(dat) {
             k <- nlevels(dat[[v]])
             if (k > 2) {
                 max_deg <- min(2, k - 1)
-                contrasts(dat[[v]]) <- contr.poly(k)[, 1:max_deg, drop = FALSE]
+                contrasts(dat[[v]], how.many = max_deg) <- contr.poly(k)[, 1:max_deg, drop = FALSE]
             }
         }
     }
@@ -74,9 +78,11 @@ fix_ordered_contrasts <- function(dat) {
 }
 
 # keep only each student's most recent survey entry
+# collapse to one row per participant: the latest recorded survey
 survey <- survey %>%
+    mutate(RecordedDate = as.POSIXct(RecordedDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")) %>%
     group_by(Participant.ID) %>%
-    slice_max(order_by = as.POSIXct(RecordedDate), n = 1, with_ties = FALSE) %>%
+    slice_max(order_by = RecordedDate, n = 1, with_ties = FALSE) %>%
     ungroup()
 
 # set Advanced only as baseline for group_4
@@ -86,6 +92,10 @@ survey$group_4 <- factor(survey$group_4, levels = c(
     "R Class before advanced",
     "R Class concurrent with advanced"
 ))
+
+# reflect anxiety so higher = better (1-5 scale, so 6 - x)
+survey$Anxiety_pre <- 6 - survey$Anxiety_pre
+survey$Anxiety_post <- 6 - survey$Anxiety_post
 
 survey_long <- survey %>%
     dplyr::select(
@@ -123,7 +133,7 @@ for (v in ordered_vars) {
         k <- nlevels(survey_long[[v]])
         if (k > 2) {
             max_deg <- min(2, k - 1)
-            contrasts(survey_long[[v]]) <- contr.poly(k)[, 1:max_deg, drop = FALSE]
+            contrasts(survey_long[[v]], how.many = max_deg) <- contr.poly(k)[, 1:max_deg, drop = FALSE]
         }
     }
 }
@@ -143,8 +153,14 @@ survey_long$High.school.particip <- factor(survey_long$High.school.particip)
 base_theme <- theme_bw(base_family = "Times New Roman") +
     theme(
         legend.position = "top",
-        plot.title = element_text(hjust = 0.5),
-        text = element_text(family = "Times New Roman"),
+        text = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 15),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        plot.caption = element_text(size = 10),
         panel.grid.major = element_line(color = "gray85"),
         panel.grid.minor = element_line(color = "gray95"),
         panel.background = element_rect(fill = "white"),
@@ -154,11 +170,18 @@ base_theme <- theme_bw(base_family = "Times New Roman") +
 base_theme_forest <- theme_bw(base_family = "Times New Roman") +
     theme(
         legend.position = "top",
-        text = element_text(family = "Times New Roman"),
+        text = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 15),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        plot.caption = element_text(size = 10),
         panel.grid.major = element_line(color = "gray85"),
         panel.grid.minor = element_line(color = "gray95"),
-        strip.background = element_rect(fill = "gray95"),
-        axis.text.y = element_text(size = 8)
+        panel.background = element_rect(fill = "white"),
+        strip.background = element_rect(fill = "gray95")
     )
 
 palette_4grp <- c(
@@ -436,6 +459,8 @@ for (metric in metrics) {
     }
 }
 
+table(coefficient_results$Term[grepl("savviness", coefficient_results$Term)])
+
 # rank block results by F-test p-value within each metric
 block_results <- block_results %>%
     group_by(Metric) %>%
@@ -521,7 +546,7 @@ for (block_name in names(covariate_blocks)) {
     ggsave(
         paste0("../Figures/BlockVsSingle_", block_name, ".png"),
         p_forest,
-        width = 12, height = max(3, length(unique(plot_data$y_label)) * 0.5 + 2),
+        width = 10, height = max(3, length(unique(plot_data$y_label)) * 0.5 + 2),
         bg = "white"
     )
     cat("Saved plot for block:", block_name, "\n")
@@ -818,7 +843,7 @@ p_likert <- ggplot(
     geom_text(
         aes(label = pct_label),
         position = position_stack(vjust = 0.5),
-        color = "white", size = 3.5,
+        color = "white",
         family = "Times New Roman",
         data = ~ filter(.x, pct > 0.04)
     ) +
@@ -838,7 +863,6 @@ p_likert <- ggplot(
     theme(
         legend.position = "right",
         text = element_text(family = "Times New Roman"),
-        axis.text.y = element_text(size = 10),
         panel.grid.major.y = element_blank(),
         panel.grid.minor = element_blank(),
         strip.background = element_rect(fill = "gray95")
@@ -985,7 +1009,7 @@ p_best_base <- ggplot(
         )
     ) +
     base_theme +
-    theme(plot.caption = element_text(hjust = 0, size = 9, face = "italic"))
+    theme(plot.caption = element_text(hjust = 0,face = "italic"))
 
 # extract actual dodged x positions for bracket placement
 best_block_bracket_coords <- data.frame()
@@ -1053,11 +1077,11 @@ if (nrow(best_block_bracket_coords) > 0) {
                      inherit.aes = FALSE, color = "black", linewidth = 0.5) +
         geom_text(data = best_block_bracket_coords,
                   aes(x = xmid, y = y_bracket + 0.08, label = Sig),
-                  inherit.aes = FALSE, color = "black", size = 4)
+                  inherit.aes = FALSE, color = "black")
 }
 
 ggsave("../Figures/BestBlock_Emmeans_PrePost.png",
-    p_best_block_emmeans, width = 11, height = 6, bg = "white")
+    p_best_block_emmeans, width = 10, height = 6, dpi = 300, bg = "white")
 
 
 ################################################################################
@@ -1191,7 +1215,7 @@ p_block_coef <- ggplot(
                          ".\nReference level: Advanced only, pre-time. L = linear trend, Q = quadratic trend.")
     ) +
     base_theme +
-    theme(plot.caption = element_text(hjust = 0, size = 9, face = "italic"))
+    theme(plot.caption = element_text(hjust = 0, face = "italic"))
 
 ggsave("../Figures/CoefPlot_BestBlock.png",
     p_block_coef,
