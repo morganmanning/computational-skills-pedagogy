@@ -18,7 +18,7 @@ rm(list = ls())
 ################################################################################
 
 font_add("Times New Roman", "C:/Windows/Fonts/times.ttf")
-showtext_auto(FALSE)
+showtext_auto(FALSE) # girl idk
 
 base_theme <- theme_bw(base_family = "Times New Roman") +
     theme(
