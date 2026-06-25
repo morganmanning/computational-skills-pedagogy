@@ -10,7 +10,7 @@ library(broom.mixed)
 library(kableExtra)
 
 # set up
-setwd("~/Desktop/pedagogy/Data")
+# setwd("~/Desktop/pedagogy/Data")
 rm(list = ls())
 
 
@@ -125,11 +125,11 @@ survey <- survey %>%
         Quant = ifelse(any(Quant == 1), 1, Quant),
         Foundational = ifelse(any(Foundational == 1), 1, Foundational),
         # timing
-        # concurrent = R class and advanced course in the same semester
+        # concurrent = Foundational and advanced course in the same semester
         took_advanced_concurrent = any(Found_current & Advanced_current),
-        # sequential = currently in an advanced course while R class is in Previous.classes
-        # only catches the intended direction: R class first, then advanced course
-        # students who did advanced before R class intentionally fall through to "None"
+        # sequential = currently in an advanced course while Foundational is in Previous.classes
+        # only catches the intended direction: Foundational first, then advanced course
+        # students who did advanced before Foundational intentionally fall through to "None"
         took_R_before_advanced = any(
             Advanced_current &
             grepl("Computational Problem Solving in Wildlife Ecology Using R \\(WIS 4934\\)",
@@ -142,28 +142,28 @@ survey <- survey %>%
 survey <- survey %>%
     mutate(
         group_5 = case_when(
-            Foundational == 1 & Quant == 1 & PopEco == 1 ~ "R Class, Quant, and Pop Eco",
-            Foundational == 1 & (Quant == 1 | PopEco == 1) ~ "R Class and Quant or Pop Eco",
+            Foundational == 1 & Quant == 1 & PopEco == 1 ~ "Foundational, Quant, and Pop Eco",
+            Foundational == 1 & (Quant == 1 | PopEco == 1) ~ "Foundational and Quant or Pop Eco",
             Foundational == 0 & Quant == 1 & PopEco == 1 ~ "Quant and Pop Eco",
             Foundational == 0 & (Quant == 1 | PopEco == 1) ~ "Quant or Pop Eco",
-            Foundational == 1 & Quant == 0 & PopEco == 0 ~ "R Class only",
+            Foundational == 1 & Quant == 0 & PopEco == 0 ~ "Foundational only",
             TRUE ~ "None"
         ),
         group_3 = case_when(
-            Foundational == 1 & (Quant == 1 | PopEco == 1) ~ "R Class and an advanced course",
+            Foundational == 1 & (Quant == 1 | PopEco == 1) ~ "Foundational and an advanced course",
             Foundational == 0 & (Quant == 1 | PopEco == 1) ~ "Quant and/or Pop Eco only",
-            Foundational == 1 & Quant == 0 & PopEco == 0 ~ "R Class only",
+            Foundational == 1 & Quant == 0 & PopEco == 0 ~ "Foundational only",
             TRUE ~ "None"
         ),
         group_4 = case_when(
             # concurrent checked first — if they took R and advanced in the same semester,
             # that wins even if R also appears in a previous semester
-            Foundational == 1 & (PopEco == 1 | Quant == 1) & took_advanced_concurrent ~ "R Class concurrent with advanced",
-            # sequential — R class finished before the advanced course started
-            Foundational == 1 & (PopEco == 1 | Quant == 1) & took_R_before_advanced   ~ "R Class before advanced",
-            # R class only, no advanced
-            Foundational == 1 & PopEco == 0 & Quant == 0                              ~ "R Class only",
-            # advanced but no R class
+            Foundational == 1 & (PopEco == 1 | Quant == 1) & took_advanced_concurrent ~ "Foundational concurrent with advanced",
+            # sequential — Foundational finished before the advanced course started
+            Foundational == 1 & (PopEco == 1 | Quant == 1) & took_R_before_advanced   ~ "Foundational before advanced",
+            # Foundational only, no advanced
+            Foundational == 1 & PopEco == 0 & Quant == 0                              ~ "Foundational only",
+            # advanced but no Foundational
             Foundational == 0 & (PopEco == 1 | Quant == 1)                            ~ "Advanced only",
             TRUE ~ "None"
         )
@@ -315,11 +315,11 @@ survey_long <- data_for_long %>%
     Foundational = factor(Foundational, labels = c("No Foundation", "Foundation")),
     PopEco = factor(PopEco, labels = c("No PopEco", "PopEco")),
     Quant = factor(Quant, labels = c("No Quant", "Quant")),
-    group_5 = factor(group_5, levels = c("None", "R Class only", "Quant or Pop Eco only", 
-                                        "R Class and Quant or Pop Eco", "Quant and Pop Eco", 
-                                        "R Class, Quant, and Pop Eco")),
-    group_3 = factor(group_3, levels = c("None", "R Class only", "Quant and/or Pop Eco only", "R Class and an advanced course")),
-    group_4 = factor(group_4, levels = c("None", "Advanced only", "R Class only", "R Class before advanced", "R Class concurrent with advanced")),
+    group_5 = factor(group_5, levels = c("None", "Foundational only", "Quant or Pop Eco only", 
+                                        "Foundational and Quant or Pop Eco", "Quant and Pop Eco", 
+                                        "Foundational, Quant, and Pop Eco")),
+    group_3 = factor(group_3, levels = c("None", "Foundational only", "Quant and/or Pop Eco only", "Foundational and an advanced course")),
+    group_4 = factor(group_4, levels = c("None", "Advanced only", "Foundational only", "Foundational before advanced", "Foundational concurrent with advanced")),
     student_id = as.factor(Participant.ID)
   ) %>%
   filter(!is.na(score))  # remove missing values

@@ -9,7 +9,7 @@ library(showtext)
 font_add("Times New Roman", "C:/Windows/Fonts/times.ttf")
 showtext_auto(FALSE)
 
-setwd("Data")
+#setwd("Data")
 rm(list = ls())
 
 ################################################################################
@@ -88,9 +88,9 @@ survey <- survey %>%
 # set Advanced only as baseline for group_4
 survey$group_4 <- factor(survey$group_4, levels = c(
     "Advanced only",
-    "R Class only",
-    "R Class before advanced",
-    "R Class concurrent with advanced"
+    "Foundational only",
+    "Foundational before advanced",
+    "Foundational concurrent with advanced"
 ))
 
 # reflect anxiety so higher = better (1-5 scale, so 6 - x)
@@ -185,17 +185,17 @@ base_theme_forest <- theme_bw(base_family = "Times New Roman") +
     )
 
 palette_4grp <- c(
-    "R Class only" = "#56B4E9",
+    "Foundational only" = "#56B4E9",
     "Advanced only" = "#E69F00",
-    "R Class before advanced" = "#009E73",
-    "R Class concurrent with advanced" = "#CC79A7"
+    "Foundational before advanced" = "#009E73",
+    "Foundational concurrent with advanced" = "#CC79A7"
 )
 
 shape_4grp <- c(
-    "R Class only" = 16,
+    "Foundational only" = 16,
     "Advanced only" = 17,
-    "R Class before advanced" = 15,
-    "R Class concurrent with advanced" = 18
+    "Foundational before advanced" = 15,
+    "Foundational concurrent with advanced" = 18
 )
 
 palette_model_type <- c("Block model" = "#E69F00", "Single model" = "#56B4E9")
@@ -667,9 +667,9 @@ clean_term <- function(term) {
         gsub("\\.Q$", " (quadratic trend)", .) %>%
         gsub("Timepost", "Time: post", .) %>%
         gsub("High.school.participYes", "Advanced math in high school: Yes", .) %>%
-        gsub("group_4R Class only", "R Class only", .) %>%
-        gsub("group_4R Class before advanced", "R Class before advanced", .) %>%
-        gsub("group_4R Class concurrent with advanced","R Class concurrent with advanced", .) %>%
+        gsub("group_4Foundational only", "Foundational only", .) %>%
+        gsub("group_4Foundational before advanced", "Foundational before advanced", .) %>%
+        gsub("group_4Foundational concurrent with advanced","Foundational concurrent with advanced", .) %>%
         gsub("Perseverance", "Perseverance", .) %>%
         gsub("Effort", "Effort required", .) %>%
         gsub("Computer.savviness", "Computer savviness", .) %>%
@@ -942,8 +942,8 @@ best_block_emmeans <- best_block_emmeans %>%
         Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
                          labels = c("Anxiety", "Math Skills", "Computing")),
         group_4 = factor(group_4, levels = c(
-            "Advanced only", "R Class only",
-            "R Class before advanced", "R Class concurrent with advanced"
+            "Advanced only", "Foundational only",
+            "Foundational before advanced", "Foundational concurrent with advanced"
         ))
     ) %>%
     filter(!is.na(group_4))

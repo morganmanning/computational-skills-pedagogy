@@ -15,7 +15,7 @@ library(emmeans)
 library(ggplot2)
 
 # set working directory
-setwd("~/Dropbox/UF/Research/Chapter 3 (R)/Data")
+#setwd("~/Dropbox/UF/Research/Chapter 3 (R)/Data")
 
 
 ################################################################################
@@ -119,29 +119,29 @@ summarize_scores <- function(data, group_var) {
 ################################################################################
 
 palette_3 <- c(
-    "R Class only" = "#56B4E9",
+    "Foundational only" = "#56B4E9",
     "Quant and/or Pop Eco only" = "#E69F00",
-    "R Class and an advanced course" = "#009E73"
+    "Foundational and an advanced course" = "#009E73"
 )
 
 palette_4 <- c(
-    "R Class only" = "#56B4E9",
+    "Foundational only" = "#56B4E9",
     "Advanced only" = "#E69F00",
-    "R Class before advanced" = "#009E73",
-    "R Class concurrent with advanced" = "#CC79A7"
+    "Foundational before advanced" = "#009E73",
+    "Foundational concurrent with advanced" = "#CC79A7"
 )
 
 palette_5 <- c(
-    "R Class only" = "#56B4E9",
+    "Foundational only" = "#56B4E9",
     "Quant or Pop Eco" = "#E69F00",
     "Quant and Pop Eco" = "#D55E00",
-    "R Class and Quant or Pop Eco" = "#009E73",
-    "R Class, Quant, and Pop Eco" = "#CC79A7"
+    "Foundational and Quant or Pop Eco" = "#009E73",
+    "Foundational, Quant, and Pop Eco" = "#CC79A7"
 )
 
 palette_found <- c(
-    "No R Class" = "#56B4E9",
-    "Took R Class" = "#E69F00"
+    "No Foundational" = "#56B4E9",
+    "Took Foundational" = "#E69F00"
 )
 
 # shared ggplot theme
@@ -157,7 +157,7 @@ base_theme <- theme_bw(base_family = "Times New Roman") +
     )
 
 course_x_labels <- c(
-    "R Class" = "R Class",
+    "Foundational" = "Foundational",
     "Quant"   = "Quant Ecology",
     "Pop Eco" = "Pop Ecology"
 )
@@ -177,22 +177,22 @@ survey <- read.csv("formatted_survey.csv")
 survey$group_5 <- factor(survey$group_5, levels = c(
     "Quant or Pop Eco",
     "Quant and Pop Eco",
-    "R Class only",
-    "R Class and Quant or Pop Eco",
-    "R Class, Quant, and Pop Eco"
+    "Foundational only",
+    "Foundational and Quant or Pop Eco",
+    "Foundational, Quant, and Pop Eco"
 ))
 
 survey$group_4 <- factor(survey$group_4, levels = c(
-    "R Class only",
+    "Foundational only",
     "Advanced only",
-    "R Class before advanced",
-    "R Class concurrent with advanced"
+    "Foundational before advanced",
+    "Foundational concurrent with advanced"
 ))
 
 survey$group_3 <- factor(survey$group_3, levels = c(
     "Quant and/or Pop Eco only",
-    "R Class only",
-    "R Class and an advanced course"
+    "Foundational only",
+    "Foundational and an advanced course"
 ))
 
 survey$Computer.age <- factor(survey$Computer.age,
@@ -532,7 +532,7 @@ p_coef_3 <- ggplot(filter(coef_plot_data, Group_scheme == "3-group"),
 p_coef_4 <- ggplot(filter(coef_plot_data, Group_scheme == "4-group"),
     aes(x = Estimate, y = reorder(Term, Estimate), color = Term_type)) +
     coef_plot_layers + facet_wrap(~Metric, scales = "free_x") +
-    labs(x = "Estimate (relative to R class only, pre-time)")
+    labs(x = "Estimate (relative to Foundational only, pre-time)")
 
 p_coef_5 <- ggplot(filter(coef_plot_data, Group_scheme == "5-group"),
     aes(x = Estimate, y = reorder(Term, Estimate), color = Term_type)) +
@@ -620,14 +620,14 @@ survey_tagged <- survey %>%
     filter(took_this_sem) %>%
     mutate(
         course_this_sem = case_when(
-            course_flag == "in_R_class" ~ "R Class",
+            course_flag == "in_R_class" ~ "Foundational",
             course_flag == "in_Quant"   ~ "Quant",
             course_flag == "in_PopEco"  ~ "Pop Eco"
         ),
-        course_this_sem = factor(course_this_sem, levels = c("R Class", "Quant", "Pop Eco")),
+        course_this_sem = factor(course_this_sem, levels = c("Foundational", "Quant", "Pop Eco")),
         Found_label = factor(
-            ifelse(Foundational == 1, "Took R Class", "No R Class"),
-            levels = c("No R Class", "Took R Class")
+            ifelse(Foundational == 1, "Took Foundational", "No Foundational"),
+            levels = c("No Foundational", "Took Foundational")
         )
     ) %>%
     dplyr::select(-course_flag, -took_this_sem)
@@ -934,10 +934,10 @@ p_course_seq <- ggplot(
     ) +
     scale_shape_manual(
         values = c(
-            "No R Class.pre" = 1,    # open circle
-            "No R Class.post" = 16,   # filled circle
-            "Took R Class.pre" = 2,    # open triangle
-            "Took R Class.post" = 17   # filled triangle
+            "No Foundational.pre" = 1,    # open circle
+            "No Foundational.post" = 16,   # filled circle
+            "Took Foundational.pre" = 2,    # open triangle
+            "Took Foundational.post" = 17   # filled triangle
         ),
         guide = "none"   # shape redundant with color + linetype; drop from legend
     ) +
@@ -974,7 +974,7 @@ p_course_change <- ggplot(
                position = position_dodge(width = 0.3), size = 3) +
     facet_wrap(~Metric) +
     scale_color_manual(values = palette_found) +
-    scale_shape_manual(values = c("No R Class" = 16, "Took R Class" = 17)) +
+    scale_shape_manual(values = c("No Foundational" = 16, "Took Foundational" = 17)) +
     scale_x_discrete(labels = course_x_labels) +
     labs(
         x     = "Course (intended sequence)",
@@ -996,8 +996,8 @@ prepost_emmeans_results <- prepost_emmeans_results %>%
     mutate(
         Time            = factor(Time, levels = c("pre", "post")),
         Metric          = factor(Metric, levels = c("Anxiety", "Math Skills", "Computing")),
-        course_this_sem = factor(course_this_sem, levels = c("R Class", "Quant", "Pop Eco")),
-        Found_label     = factor(Found_label, levels = c("No R Class", "Took R Class"))
+        course_this_sem = factor(course_this_sem, levels = c("Foundational", "Quant", "Pop Eco")),
+        Found_label     = factor(Found_label, levels = c("No Foundational", "Took Foundational"))
     )
 
 p_course_emmeans <- ggplot(
@@ -1011,7 +1011,7 @@ p_course_emmeans <- ggplot(
     facet_grid(Metric ~ course_this_sem,
                labeller = labeller(course_this_sem = course_x_labels)) +
     scale_color_manual(values = palette_found) +
-    scale_shape_manual(values = c("No R Class" = 16, "Took R Class" = 17)) +
+    scale_shape_manual(values = c("No Foundational" = 16, "Took Foundational" = 17)) +
     scale_x_discrete(labels = c("pre" = "Pre", "post" = "Post")) +
     labs(x = "Time", y = "Model-predicted Mean Score (95% CI)",
          color = NULL, shape = NULL) +
@@ -1029,8 +1029,8 @@ ggsave("../Figures/CourseSequence_Emmeans.png",
 change_emmeans_results <- change_emmeans_results %>%
     mutate(
         Metric = factor(Metric, levels = c("Anxiety", "Math Skills", "Computing")),
-        course_this_sem = factor(course_this_sem, levels = c("R Class", "Quant", "Pop Eco")),
-        Found_label = factor(Found_label, levels = c("No R Class", "Took R Class"))
+        course_this_sem = factor(course_this_sem, levels = c("Foundational", "Quant", "Pop Eco")),
+        Found_label = factor(Found_label, levels = c("No Foundational", "Took Foundational"))
     )
 
 p_change_emmeans <- ggplot(
@@ -1045,7 +1045,7 @@ p_change_emmeans <- ggplot(
                position = position_dodge(width = 0.3), size = 3) +
     facet_wrap(~Metric) +
     scale_color_manual(values = palette_found) +
-    scale_shape_manual(values = c("No R Class" = 16, "Took R Class" = 17)) +
+    scale_shape_manual(values = c("No Foundational" = 16, "Took Foundational" = 17)) +
     scale_x_discrete(labels = course_x_labels) +
     labs(x = "Course (intended sequence)",
          y = "Model-predicted Change Score (95% CI)",
@@ -1356,8 +1356,8 @@ found_counts <- survey %>%
     filter(!is.na(Foundational)) %>%
     count(Foundational) %>%
     mutate(Label = ifelse(Foundational == 1,
-        "Took R class at some point",
-        "Never took R class"
+        "Took Foundational at some point",
+        "Never took Foundational"
     ))
 print(as.data.frame(found_counts))
 
@@ -1376,7 +1376,7 @@ grp3_counts <- survey %>%
 print(as.data.frame(grp3_counts))
 
 ################################################################################
-# 3. 4-GROUP SCHEMA (R class timing relative to advanced courses)
+# 3. 4-GROUP SCHEMA (Foundational timing relative to advanced courses)
 # included: students with a valid group_4 assignment
 # excluded: students with NA course flags (group_4 == "None")
 ################################################################################
@@ -1435,13 +1435,13 @@ rq_counts <- rq_timing %>%
 print(as.data.frame(rq_counts))
 
 ################################################################################
-# 7. R CLASS + ANY ADVANCED COURSE (sequence irrelevant)
-# included: students who took R class AND at least one of Quant or Pop Eco
-# excluded: students who only took R class, only took advanced, or have NA flags
+# 7. Foundational + ANY ADVANCED COURSE (sequence irrelevant)
+# included: students who took Foundational AND at least one of Quant or Pop Eco
+# excluded: students who only took Foundational, only took advanced, or have NA flags
 ################################################################################
-cat("\n--- 7. R CLASS + ANY ADVANCED COURSE (sequence irrelevant) ---\n")
+cat("\n--- 7. Foundational + ANY ADVANCED COURSE (sequence irrelevant) ---\n")
 cat("(included: students who took R AND at least Quant or Pop Eco)\n")
-cat("(excluded: R class only students, advanced only students, NA)\n")
+cat("(excluded: Foundational only students, advanced only students, NA)\n")
 cat("(note: timing and sequence between courses is ignored)\n")
 r_plus_advanced <- survey %>%
     distinct(Participant.ID, Foundational, Quant, PopEco) %>%
@@ -1451,14 +1451,14 @@ r_plus_advanced <- survey %>%
     ) %>%
     count(r_and_advanced) %>%
     mutate(Label = ifelse(r_and_advanced,
-        "R class + at least one advanced course",
+        "Foundational + at least one advanced course",
         "Did not take both R and an advanced course"
     ))
 print(as.data.frame(r_plus_advanced))
 
 ################################################################################
 # 8. COURSE SEQUENCE PLOT GROUPS (survey_tagged)
-# included: students who appeared in at least one of R Class / Quant / Pop Eco
+# included: students who appeared in at least one of Foundational / Quant / Pop Eco
 #           in Current.classes at any point; one row per student per course
 ################################################################################ 
 cat("\n--- 8. COURSE SEQUENCE PLOT GROUPS (student-course rows) ---\n")
@@ -1552,7 +1552,7 @@ course_long_expanded <- course_long_prepost %>%
 # summarize: course × time × metric × expanded_group
 ################################################################################ 
 summary_expanded <- course_long_expanded %>%
-    # R+Quant groups should only appear at R Class and Quant x positions
+    # R+Quant groups should only appear at Foundational and Quant x positions
     # even if those students also took Pop Eco at some point
     filter(!(expanded_group %in% c("R + Quant sequential", "R + Quant concurrent") &
         course_this_sem == "Pop Eco")) %>%
@@ -1681,7 +1681,7 @@ course_long_expanded_model <- course_long_prepost %>%
         by = "Participant.ID"
     ) %>%
     filter(expanded_group != "None", !is.na(expanded_group)) %>%
-    # R+Quant groups only appear at R Class and Quant positions
+    # R+Quant groups only appear at Foundational and Quant positions
     filter(!(expanded_group %in% c("R + Quant sequential", "R + Quant concurrent") &
         course_this_sem == "Pop Eco")) %>%
     droplevels()
@@ -1725,7 +1725,7 @@ for (metric in metrics_plot) {
     #print(summary(model)$coefficients)
 
     # subset of data for each course separately
-    for (course in c("R Class", "Quant")) {
+    for (course in c("Foundational", "Quant")) {
         # which groups appear at this course position
         groups_at_course <- course_long_expanded_model %>%
             filter(Metric == metric, course_this_sem == course) %>%
@@ -1813,7 +1813,7 @@ clean_expanded_em <- function(df) {
                 levels = c("Anxiety", "Math Skills", "Computing")
             ),
             course_this_sem = factor(course_this_sem,
-                levels = c("R Class", "Quant", "Pop Eco")
+                levels = c("Foundational", "Quant", "Pop Eco")
             ),
             expanded_group = factor(expanded_group, levels = c(
                 "R only",

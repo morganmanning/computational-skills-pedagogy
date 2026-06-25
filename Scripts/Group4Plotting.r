@@ -10,7 +10,7 @@ library(ggplot2)
 library(kableExtra)
 library(showtext)
 
-setwd("Data")
+#setwd("Data")
 rm(list = ls())
 
 ################################################################################
@@ -40,17 +40,17 @@ base_theme <- theme_bw(base_family = "Times New Roman") +
 
 # keeping this consistent with the palette_4 colors used elsewhere
 palette_4grp <- c(
-    "R Class only" = "#56B4E9",
+    "Foundational only" = "#56B4E9",
     "Advanced only" = "#E69F00",
-    "R Class before advanced" = "#009E73",
-    "R Class concurrent with advanced" = "#CC79A7"
+    "Foundational before advanced" = "#009E73",
+    "Foundational concurrent with advanced" = "#CC79A7"
 )
 
 shape_4grp <- c(
-    "R Class only" = 16,
+    "Foundational only" = 16,
     "Advanced only" = 17,
-    "R Class before advanced" = 15,
-    "R Class concurrent with advanced" = 18
+    "Foundational before advanced" = 15,
+    "Foundational concurrent with advanced" = 18
 )
 
 palette_metric <- c(
@@ -243,9 +243,9 @@ emmeans_results <- emmeans_results %>%
         Metric = factor(Metric, levels = c("Anxiety", "Math Skills", "Computing")),
         group_4 = factor(group_4, levels = c(
             "Advanced only",
-            "R Class only",
-            "R Class before advanced",
-            "R Class concurrent with advanced"
+            "Foundational only",
+            "Foundational before advanced",
+            "Foundational concurrent with advanced"
         ))
     )
 emmeans_results <- emmeans_results[emmeans_results$group_4 != "None" & !is.na(emmeans_results$group_4), ] # drop unclassified rows
@@ -477,9 +477,9 @@ for (metric in metrics_plot) {
 
 group_levels <- c(
     "Advanced only",
-    "R Class only",
-    "R Class before advanced",
-    "R Class concurrent with advanced"
+    "Foundational only",
+    "Foundational before advanced",
+    "Foundational concurrent with advanced"
 )
 
 # mimic position_dodge(width = 0.3)
