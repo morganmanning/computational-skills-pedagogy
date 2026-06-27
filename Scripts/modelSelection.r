@@ -9,7 +9,7 @@ library(showtext)
 font_add("Times New Roman", "C:/Windows/Fonts/times.ttf")
 showtext_auto(FALSE)
 
-#setwd("Data")
+# setwd("Data")
 rm(list = ls())
 
 ################################################################################
@@ -39,7 +39,8 @@ survey$External.help_2 <- factor(survey$External.help_2, ordered = TRUE, levels 
 survey$External.help_3 <- factor(survey$External.help_3, ordered = TRUE, levels = c(1:5))
 survey$Dream.job <- factor(survey$Dream.job, ordered = TRUE, levels = c(1:5))
 survey$Job.search <- factor(survey$Job.search, ordered = TRUE, levels = c(1:5))
-survey$Academic.standing <- factor(survey$Academic.standing, ordered = TRUE,
+survey$Academic.standing <- factor(survey$Academic.standing,
+    ordered = TRUE,
     levels = c("Freshman", "Sophomore", "Junior", "Senior", "Graduate degree program")
 )
 survey$Age <- as.numeric(survey$Age)
@@ -47,10 +48,12 @@ survey[survey == ""] <- NA
 
 # truncate ordered factor contrasts to linear + quadratic only
 # prevents cubic and higher-order polynomial trends from entering the design matrix
-ordered_vars <- c("Computer.age", "Laptop.issues", "Perseverance", "Effort",
-                  "Engagement", "Computer.savviness", "External.help_1",
-                  "External.help_2", "External.help_3", "Dream.job",
-                  "Job.search", "Academic.standing")
+ordered_vars <- c(
+    "Computer.age", "Laptop.issues", "Perseverance", "Effort",
+    "Engagement", "Computer.savviness", "External.help_1",
+    "External.help_2", "External.help_3", "Dream.job",
+    "Job.search", "Academic.standing"
+)
 
 for (v in ordered_vars) {
     k <- nlevels(survey[[v]])
@@ -167,23 +170,6 @@ base_theme <- theme_bw(base_family = "Times New Roman") +
         strip.background = element_rect(fill = "gray95")
     )
 
-base_theme_forest <- theme_bw(base_family = "Times New Roman") +
-    theme(
-        legend.position = "top",
-        text = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        axis.title = element_text(size = 16),
-        strip.text = element_text(size = 15),
-        legend.text = element_text(size = 12),
-        legend.title = element_text(size = 14),
-        plot.title = element_text(size = 18, hjust = 0.5),
-        plot.caption = element_text(size = 10),
-        panel.grid.major = element_line(color = "gray85"),
-        panel.grid.minor = element_line(color = "gray95"),
-        panel.background = element_rect(fill = "white"),
-        strip.background = element_rect(fill = "gray95")
-    )
-
 palette_4grp <- c(
     "Foundational only" = "#56B4E9",
     "Advanced only" = "#E69F00",
@@ -253,7 +239,7 @@ clean_covar_label <- function(x) {
 
 
 ################################################################################
-# MODEL FITTING 
+# MODEL FITTING
 # all models: Score ~ group_4 * Time + covariate(s), lm, no random effects
 ################################################################################
 
@@ -263,7 +249,6 @@ single_results <- data.frame()
 single_fit_info <- data.frame()
 
 for (metric in metrics) {
-
     cat("\n========================================\n")
     cat("Metric:", metric, "\n")
     cat("========================================\n")
@@ -314,7 +299,6 @@ for (metric in metrics) {
 
     # --- block models ---
     for (block_name in names(covariate_blocks)) {
-
         block_covars <- covariate_blocks[[block_name]]
         covars_present <- block_covars[block_covars %in% names(metric_data)]
         if (length(covars_present) == 0) next
@@ -331,7 +315,10 @@ for (metric in metrics) {
 
         block_model <- tryCatch(
             lm(as.formula(formula_str), data = block_data),
-            error = function(e) { message("Block model error: ", e$message); NULL }
+            error = function(e) {
+                message("Block model error: ", e$message)
+                NULL
+            }
         )
         if (is.null(block_model)) next
 
@@ -351,8 +338,10 @@ for (metric in metrics) {
             TRUE ~ ""
         )
 
-        cat("  Block:", block_name, "| N =", nrow(block_data),
-            "| F =", ftest_F, "| p =", ftest_p, ftest_sig, "\n")
+        cat(
+            "  Block:", block_name, "| N =", nrow(block_data),
+            "| F =", ftest_F, "| p =", ftest_p, ftest_sig, "\n"
+        )
 
         fit_row <- data.frame(
             Metric = metric,
@@ -393,7 +382,6 @@ for (metric in metrics) {
 
     # --- single-covariate models ---
     for (covar in all_covariates) {
-
         if (!covar %in% names(metric_data)) next
 
         single_data <- metric_data[complete.cases(metric_data[, covar, drop = FALSE]), ]
@@ -403,7 +391,10 @@ for (metric in metrics) {
         formula_str <- paste0("Score ~ group_4 * Time + ", covar)
         single_model <- tryCatch(
             lm(as.formula(formula_str), data = single_data),
-            error = function(e) { message("Single model error: ", e$message); NULL }
+            error = function(e) {
+                message("Single model error: ", e$message)
+                NULL
+            }
         )
         if (is.null(single_model)) next
 
@@ -496,11 +487,13 @@ single_coef_plot <- single_results %>%
 
 forest_data <- rbind(block_coef_plot, single_coef_plot) %>%
     mutate(
-        Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                            labels = c("Anxiety", "Math Skills", "Computing")),
+        Metric = factor(Metric,
+            levels = c("Anxiety", "MathSkills", "Computing"),
+            labels = c("Anxiety", "Math Skills", "Computing")
+        ),
         Model_type = factor(Model_type, levels = c("Block model", "Single model")),
         Term_clean = Term %>%
-            gsub("\\.L$", " (linear)",    .) %>%
+            gsub("\\.L$", " (linear)", .) %>%
             gsub("\\.Q$", " (quadratic)", .) %>%
             gsub(paste(all_covariates, collapse = "|"), "", .) %>%
             trimws(),
@@ -512,18 +505,19 @@ forest_data <- rbind(block_coef_plot, single_coef_plot) %>%
 
 
 ################################################################################
-# PLOT: COMPARE SINGLE VS BLOCK MODELS 
+# PLOT: COMPARE SINGLE VS BLOCK MODELS
 ################################################################################
 
 for (block_name in names(covariate_blocks)) {
-
     plot_data <- forest_data %>% filter(Block == block_name)
     if (nrow(plot_data) == 0) next
 
     p_forest <- ggplot(
         plot_data,
-        aes(x = Estimate, y = y_label,
-            color = Model_type, alpha = Significant)
+        aes(
+            x = Estimate, y = y_label,
+            color = Model_type, alpha = Significant
+        )
     ) +
         geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
         geom_errorbarh(
@@ -541,12 +535,12 @@ for (block_name in names(covariate_blocks)) {
             color = NULL,
             title = paste0("Covariate effects: ", block_name, " block")
         ) +
-        base_theme_forest
+        base_theme
 
     ggsave(
         paste0("../Figures/BlockVsSingle_", block_name, ".png"),
         p_forest,
-        width = 10, height = max(3, length(unique(plot_data$y_label)) * 0.5 + 2),
+        width = 12, height = max(3, length(unique(plot_data$y_label)) * 0.5 + 2),
         bg = "white"
     )
     cat("Saved plot for block:", block_name, "\n")
@@ -582,8 +576,10 @@ sig_table_data <- single_fit_info %>%
         Sig_cell = ifelse(FTest_p < 0.05, Direction, ""),
         Sig_cell = ifelse(is.na(Sig_cell), "", Sig_cell),
         Covar_label = clean_covar_label(Covariate),
-        Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                              labels = c("Anxiety", "Math Skills", "Computing"))
+        Metric = factor(Metric,
+            levels = c("Anxiety", "MathSkills", "Computing"),
+            labels = c("Anxiety", "Math Skills", "Computing")
+        )
     )
 
 sig_wide <- sig_table_data %>%
@@ -624,8 +620,10 @@ sig_wide %>%
 block_results %>%
     filter(Block != "Base") %>%
     mutate(
-        Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                         labels = c("Anxiety", "Math Skills", "Computing")),
+        Metric = factor(Metric,
+            levels = c("Anxiety", "MathSkills", "Computing"),
+            labels = c("Anxiety", "Math Skills", "Computing")
+        ),
         FTest_p_fmt = ifelse(is.na(FTest_p), "", paste0(FTest_p, " ", FTest_Sig))
     ) %>%
     arrange(Metric, FTest_p) %>%
@@ -669,7 +667,7 @@ clean_term <- function(term) {
         gsub("High.school.participYes", "Advanced math in high school: Yes", .) %>%
         gsub("group_4Foundational only", "Foundational only", .) %>%
         gsub("group_4Foundational before advanced", "Foundational before advanced", .) %>%
-        gsub("group_4Foundational concurrent with advanced","Foundational concurrent with advanced", .) %>%
+        gsub("group_4Foundational concurrent with advanced", "Foundational concurrent with advanced", .) %>%
         gsub("Perseverance", "Perseverance", .) %>%
         gsub("Effort", "Effort required", .) %>%
         gsub("Computer.savviness", "Computer savviness", .) %>%
@@ -684,14 +682,18 @@ clean_term <- function(term) {
 
 best_coef_combined <- data.frame()
 for (metric in metrics) {
-    best_name <- best_models %>% filter(Metric == metric) %>% pull(Model)
+    best_name <- best_models %>%
+        filter(Metric == metric) %>%
+        pull(Model)
     rows <- coefficient_results %>%
         filter(Metric == metric, Model == best_name) %>%
         dplyr::select(Metric, Term, Estimate, SE, t_value, p_value, Sig) %>%
         mutate(
             Term = clean_term(Term),
-            Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                            labels = c("Anxiety", "Math Skills", "Computing"))
+            Metric = factor(Metric,
+                levels = c("Anxiety", "MathSkills", "Computing"),
+                labels = c("Anxiety", "Math Skills", "Computing")
+            )
         )
     best_coef_combined <- rbind(best_coef_combined, rows)
 }
@@ -746,8 +748,10 @@ single_ftest <- single_fit_info %>%
 
 ftest_combined <- bind_rows(block_ftest, single_ftest) %>%
     mutate(
-        Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                            labels = c("Anxiety", "Math Skills", "Computing")),
+        Metric = factor(Metric,
+            levels = c("Anxiety", "MathSkills", "Computing"),
+            labels = c("Anxiety", "Math Skills", "Computing")
+        ),
         Model_type = factor(Model_type, levels = c("Block model", "Single model")),
         Sig_flag = FTest_p < 0.05
     ) %>%
@@ -854,8 +858,10 @@ p_likert <- ggplot(
     ) +
     scale_fill_manual(
         values = likert_palette,
-        labels = c("1" = "Not at all", "2" = "Slightly",
-                   "3" = "Moderately", "4" = "Very", "5" = "Extremely"),
+        labels = c(
+            "1" = "Not at all", "2" = "Slightly",
+            "3" = "Moderately", "4" = "Very", "5" = "Extremely"
+        ),
         name = NULL
     ) +
     labs(x = NULL, y = "Percentage of respondents") +
@@ -870,7 +876,9 @@ p_likert <- ggplot(
     guides(fill = guide_legend(reverse = TRUE))
 
 ggsave("../Figures/Likert_JobSearch_DreamJob.png",
-    p_likert, width = 9, height = 4, bg = "white")
+    p_likert,
+    width = 9, height = 4, bg = "white"
+)
 
 
 ################################################################################
@@ -883,7 +891,6 @@ best_block_emmeans <- data.frame()
 best_block_pairs <- data.frame()
 
 for (metric in metrics) {
-
     best_row <- best_models %>% filter(Metric == metric)
     best_block <- best_row$Block
     best_covars <- best_row$Covariates
@@ -901,7 +908,10 @@ for (metric in metrics) {
     formula_str <- paste0("Score ~ group_4 * Time + ", paste(covar_vec, collapse = " + "))
     best_model <- tryCatch(
         lm(as.formula(formula_str), data = model_data),
-        error = function(e) { message("Error: ", e$message); NULL }
+        error = function(e) {
+            message("Error: ", e$message)
+            NULL
+        }
     )
     if (is.null(best_model)) next
     best_block_models[[metric]] <- best_model
@@ -930,7 +940,10 @@ for (metric in metrics) {
                 grp2 = trimws(sub(".* - ", "", group_4_pairwise))
             ) %>%
             filter(p.value < 0.05),
-        error = function(e) { message("Contrast error: ", e$message); data.frame() }
+        error = function(e) {
+            message("Contrast error: ", e$message)
+            data.frame()
+        }
     )
     best_block_pairs <- rbind(best_block_pairs, ic)
 }
@@ -939,8 +952,10 @@ for (metric in metrics) {
 best_block_emmeans <- best_block_emmeans %>%
     mutate(
         Time = factor(Time, levels = c("pre", "post")),
-        Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                         labels = c("Anxiety", "Math Skills", "Computing")),
+        Metric = factor(Metric,
+            levels = c("Anxiety", "MathSkills", "Computing"),
+            labels = c("Anxiety", "Math Skills", "Computing")
+        ),
         group_4 = factor(group_4, levels = c(
             "Advanced only", "Foundational only",
             "Foundational before advanced", "Foundational concurrent with advanced"
@@ -951,7 +966,8 @@ best_block_emmeans <- best_block_emmeans %>%
 best_block_pairs <- best_block_pairs %>%
     mutate(Metric = factor(Metric,
         levels = c("Anxiety", "MathSkills", "Computing"),
-        labels = c("Anxiety", "Math Skills", "Computing")))
+        labels = c("Anxiety", "Math Skills", "Computing")
+    ))
 
 # sample sizes for group legend
 group_n_counts <- survey %>%
@@ -968,17 +984,21 @@ best_block_footnote <- best_block_emmeans %>%
     distinct(Metric, Best_block) %>%
     left_join(
         best_models %>%
-            mutate(Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                                   labels = c("Anxiety", "Math Skills", "Computing"))) %>%
+            mutate(Metric = factor(Metric,
+                levels = c("Anxiety", "MathSkills", "Computing"),
+                labels = c("Anxiety", "Math Skills", "Computing")
+            )) %>%
             dplyr::select(Metric, Block, FTest_F, FTest_p, FTest_Sig),
         by = c("Metric", "Best_block" = "Block")
     ) %>%
-    mutate(s = paste0(Metric, ": ", Best_block,
-                      " (F = ", FTest_F, ", p = ", FTest_p, FTest_Sig, ")")) %>%
+    mutate(s = paste0(
+        Metric, ": ", Best_block,
+        " (F = ", FTest_F, ", p = ", FTest_p, FTest_Sig, ")"
+    )) %>%
     pull(s) %>%
     paste(collapse = "; ")
 
-# base plot  
+# base plot
 p_best_base <- ggplot(
     best_block_emmeans,
     aes(x = Time, y = emmean, color = group_4, group = group_4)
@@ -995,7 +1015,7 @@ p_best_base <- ggplot(
     ) +
     facet_wrap(~Metric) +
     scale_color_manual(values = palette_4grp, labels = group_n) +
-    scale_shape_manual(values = shape_4grp,   labels = group_n) +
+    scale_shape_manual(values = shape_4grp, labels = group_n) +
     scale_x_discrete(labels = c("pre" = "Pre", "post" = "Post")) +
     guides(color = guide_legend(ncol = 2), shape = guide_legend(ncol = 2)) +
     labs(
@@ -1003,13 +1023,16 @@ p_best_base <- ggplot(
         y = "Model-predicted Mean Score (95% CI)",
         color = NULL,
         shape = NULL,
-        caption = paste0(
-            "Best covariate block (F-test): ", best_block_footnote, ".\n",
-            "Reference level: Advanced only. Emmeans averaged over covariates at observed means.\n"
+        caption = str_wrap(
+            paste0(
+                "Best covariate block (F-test): ", best_block_footnote,
+                ". Reference level: Advanced only. Emmeans averaged over covariates at observed means."
+            ),
+            width = 145
         )
     ) +
     base_theme +
-    theme(plot.caption = element_text(hjust = 0,face = "italic"))
+    theme(plot.caption = element_text(hjust = 0, face = "italic"))
 
 # extract actual dodged x positions for bracket placement
 best_block_bracket_coords <- data.frame()
@@ -1025,9 +1048,12 @@ if (nrow(best_block_pairs) > 0) {
             by = "colour"
         ) %>%
         filter(!is.na(group_4)) %>%
-        { setNames(.$x, .$group_4) }
+        {
+            setNames(.$x, .$group_4)
+        }
 
-    cat("\nPost x positions:\n"); print(x_at_post)
+    cat("\nPost x positions:\n")
+    print(x_at_post)
 
     em_y_ceil <- best_block_emmeans %>%
         group_by(Metric) %>%
@@ -1066,33 +1092,45 @@ p_best_block_emmeans <- p_best_base +
 
 if (nrow(best_block_bracket_coords) > 0) {
     p_best_block_emmeans <- p_best_block_emmeans +
-        geom_segment(data = best_block_bracket_coords,
-                     aes(x = x1, xend = x2, y = y_bracket, yend = y_bracket),
-                     inherit.aes = FALSE, color = "black", linewidth = 0.5) +
-        geom_segment(data = best_block_bracket_coords,
-                     aes(x = x1, xend = x1, y = y_bracket, yend = y_bracket - tick_len),
-                     inherit.aes = FALSE, color = "black", linewidth = 0.5) +
-        geom_segment(data = best_block_bracket_coords,
-                     aes(x = x2, xend = x2, y = y_bracket, yend = y_bracket - tick_len),
-                     inherit.aes = FALSE, color = "black", linewidth = 0.5) +
-        geom_text(data = best_block_bracket_coords,
-                  aes(x = xmid, y = y_bracket + 0.08, label = Sig),
-                  inherit.aes = FALSE, color = "black")
+        geom_segment(
+            data = best_block_bracket_coords,
+            aes(x = x1, xend = x2, y = y_bracket, yend = y_bracket),
+            inherit.aes = FALSE, color = "black", linewidth = 0.5
+        ) +
+        geom_segment(
+            data = best_block_bracket_coords,
+            aes(x = x1, xend = x1, y = y_bracket, yend = y_bracket - tick_len),
+            inherit.aes = FALSE, color = "black", linewidth = 0.5
+        ) +
+        geom_segment(
+            data = best_block_bracket_coords,
+            aes(x = x2, xend = x2, y = y_bracket, yend = y_bracket - tick_len),
+            inherit.aes = FALSE, color = "black", linewidth = 0.5
+        ) +
+        geom_text(
+            data = best_block_bracket_coords,
+            aes(x = xmid, y = y_bracket + 0.08, label = Sig),
+            inherit.aes = FALSE, color = "black"
+        )
 }
 
 ggsave("../Figures/BestBlock_Emmeans_PrePost.png",
-    p_best_block_emmeans, width = 10, height = 6, dpi = 300, bg = "white")
+    p_best_block_emmeans,
+    width = 12, height = 6, bg = "white"
+)
 
 
 ################################################################################
 # COEFFICIENT PLOT: significant single-covariate model betas
- ################################################################################
+################################################################################
 
 single_coef_plot_data <- single_results %>%
     filter(p_value < 0.05) %>%
     mutate(
-        Metric = factor(Metric, levels = c("Anxiety", "MathSkills", "Computing"),
-                        labels = c("Anxiety", "Math Skills", "Computing")),
+        Metric = factor(Metric,
+            levels = c("Anxiety", "MathSkills", "Computing"),
+            labels = c("Anxiety", "Math Skills", "Computing")
+        ),
         LCL = Estimate - 1.96 * SE,
         UCL = Estimate + 1.96 * SE
     )
@@ -1136,7 +1174,9 @@ p_single_coef <- ggplot(
     base_theme
 
 ggsave("../Figures/SingleCovariate_SigCoefs.png",
-    p_single_coef, width = 12, height = 7, bg = "white")
+    p_single_coef,
+    width = 12, height = 6, bg = "white"
+)
 
 
 ################################################################################
@@ -1146,7 +1186,9 @@ ggsave("../Figures/SingleCovariate_SigCoefs.png",
 block_coef_plot_data <- data.frame()
 
 for (metric in metrics) {
-    best_name <- best_models %>% filter(Metric == metric) %>% pull(Model)
+    best_name <- best_models %>%
+        filter(Metric == metric) %>%
+        pull(Model)
 
     rows <- coefficient_results %>%
         filter(Metric == metric, Model == best_name) %>%
@@ -1192,6 +1234,23 @@ block_coef_plot_data <- block_coef_plot_data %>%
     ungroup() %>%
     mutate(Term_clean = reorder(Term_clean, -term_order))
 
+# wrap the caption to the figure width so it doesn't run off the right edge
+coef_caption <- str_wrap(
+    paste0(
+        "Best covariate block (F-test): ", best_block_footnote_coef,
+        ". Reference level: Advanced only, pre-time. L = linear trend, Q = quadratic trend."
+    ),
+    width = 135
+)
+
+# scale figure height to the densest panel so y-axis labels don't overlap
+# (Demographics block has the most terms; ~0.45 in per row gives readable spacing)
+n_terms_max <- block_coef_plot_data %>%
+    dplyr::count(Metric) %>%
+    dplyr::pull(n) %>%
+    max()
+coef_height <- max(7, n_terms_max * 0.45 + 2)
+
 p_block_coef <- ggplot(
     block_coef_plot_data,
     aes(x = Estimate, y = Term_clean, color = Metric, alpha = Significant)
@@ -1211,15 +1270,14 @@ p_block_coef <- ggplot(
     labs(
         x = "Estimate \u03b2 (95% CI)",
         y = NULL,
-        caption = paste0("Best covariate block (F-test): ", best_block_footnote_coef,
-                         ".\nReference level: Advanced only, pre-time. L = linear trend, Q = quadratic trend.")
+        caption = coef_caption
     ) +
     base_theme +
     theme(plot.caption = element_text(hjust = 0, face = "italic"))
 
 ggsave("../Figures/CoefPlot_BestBlock.png",
     p_block_coef,
-    width = 14, height = 7, bg = "white"
+    width = 12, height = 9, bg = "white"
 )
 
 ################################################################################

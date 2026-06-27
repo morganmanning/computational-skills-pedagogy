@@ -319,13 +319,6 @@ emmeans_results <- emmeans_results %>%
         )
     )
 
-em_bracket_coords <- em_bracket_coords %>%
-    mutate(
-        Metric = factor(
-            Metric,
-            levels = c("Anxiety", "Math Skills", "Computing")
-        )
-    )
 p_emmeans <- ggplot(
     emmeans_results,
     aes(x = Time, y = emmean, color = group_4, group = group_4)
