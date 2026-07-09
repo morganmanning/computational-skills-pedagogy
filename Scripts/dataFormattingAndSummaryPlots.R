@@ -207,12 +207,9 @@ survey <- survey %>%
 anxiety_pre_cols <- c("Anxiety.1_1", "Anxiety.1_2")
 anxiety_post_cols <- c("Anxiety.2_1", "Anxiety.2_2")
 
-survey$Anxiety_pre <- rowMeans(survey[, anxiety_pre_cols], na.rm = TRUE)
-survey$Anxiety_post <- rowMeans(survey[, anxiety_post_cols], na.rm = TRUE)
-
-# reflect anxiety so higher = better (1-5 scale, so 6 - x)
-survey$Anxiety_pre <- 6 - survey$Anxiety_pre
-survey$Anxiety_post <- 6 - survey$Anxiety_post
+# items administered as higher = more anxious; mirror so higher = less anxious
+survey$Anxiety_pre <- 6 - rowMeans(survey[, anxiety_pre_cols], na.rm = TRUE)
+survey$Anxiety_post <- 6 - rowMeans(survey[, anxiety_post_cols], na.rm = TRUE)
 
 # # R skills composite scores
 # r_skills_pre_cols <- grep("^R.skills.1_", names(survey), value = TRUE)

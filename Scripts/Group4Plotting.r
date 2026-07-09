@@ -24,10 +24,10 @@ base_theme <- theme_bw(base_family = "Times New Roman") +
     theme(
         legend.position = "top",
         text = element_text(size = 14),
-        axis.text = element_text(size = 12),
+        axis.text = element_text(size = 14),
         axis.title = element_text(size = 16),
         strip.text = element_text(size = 15),
-        legend.text = element_text(size = 12),
+        legend.text = element_text(size = 14),
         legend.title = element_text(size = 14),
         plot.title = element_text(size = 18, hjust = 0.5),
         plot.caption = element_text(size = 10),
@@ -112,9 +112,6 @@ survey_long <- survey %>%
     ) %>%
     filter(group_4 != "None", !is.na(group_4)) # drop unclassified rows
 
-# reflect anxiety onto the 1-5 scale so higher = better, matching the other metrics
-survey_long <- survey_long %>%
-    mutate(Score = ifelse(Metric == "Anxiety", 6 - Score, Score))
 
 
 ################################################################################
@@ -333,6 +330,7 @@ p_emmeans <- ggplot(
         aes(shape = group_4),
         position = position_dodge(width = 0.3), size = 3
     ) +
+    ylim(1, 5) +
     facet_wrap(~Metric) +
     scale_color_manual(values = palette_4grp, labels = group_n) +
     scale_shape_manual(values = shape_4grp, labels = group_n) +

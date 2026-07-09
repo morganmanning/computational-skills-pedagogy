@@ -96,10 +96,6 @@ survey$group_4 <- factor(survey$group_4, levels = c(
     "Foundational concurrent with advanced"
 ))
 
-# reflect anxiety so higher = better (1-5 scale, so 6 - x)
-survey$Anxiety_pre <- 6 - survey$Anxiety_pre
-survey$Anxiety_post <- 6 - survey$Anxiety_post
-
 survey_long <- survey %>%
     dplyr::select(
         Participant.ID, class_number, group_4,
@@ -157,10 +153,10 @@ base_theme <- theme_bw(base_family = "Times New Roman") +
     theme(
         legend.position = "top",
         text = element_text(size = 14),
-        axis.text = element_text(size = 12),
+        axis.text = element_text(size = 14),
         axis.title = element_text(size = 16),
         strip.text = element_text(size = 15),
-        legend.text = element_text(size = 12),
+        legend.text = element_text(size = 14),
         legend.title = element_text(size = 14),
         plot.title = element_text(size = 18, hjust = 0.5),
         plot.caption = element_text(size = 10),
@@ -1022,14 +1018,14 @@ p_best_base <- ggplot(
         x = "Time",
         y = "Model-predicted Mean Score (95% CI)",
         color = NULL,
-        shape = NULL,
-        caption = str_wrap(
-            paste0(
-                "Best covariate block (F-test): ", best_block_footnote,
-                ". Reference level: Advanced only. Emmeans averaged over covariates at observed means."
-            ),
-            width = 145
-        )
+        shape = NULL
+        # caption = str_wrap(
+        #     paste0(
+        #         "Best covariate block (F-test): ", best_block_footnote,
+        #         ". Reference level: Advanced only. Emmeans averaged over covariates at observed means."
+        #     ),
+        #     width = 145
+        # )
     ) +
     base_theme +
     theme(plot.caption = element_text(hjust = 0, face = "italic"))
@@ -1269,8 +1265,8 @@ p_block_coef <- ggplot(
     ) +
     labs(
         x = "Estimate \u03b2 (95% CI)",
-        y = NULL,
-        caption = coef_caption
+        y = NULL
+        #caption = coef_caption
     ) +
     base_theme +
     theme(plot.caption = element_text(hjust = 0, face = "italic"))
