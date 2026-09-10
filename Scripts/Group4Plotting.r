@@ -73,7 +73,7 @@ survey[survey == ""] <- NA
 
 # only one per particip
 survey <- survey %>%
-    mutate(RecordedDate = as.POSIXct(RecordedDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")) %>%
+    mutate(RecordedDate = lubridate::mdy_hm(RecordedDate)) %>%
     group_by(Participant.ID) %>%
     slice_max(order_by = RecordedDate, n = 1, with_ties = FALSE) %>%
     ungroup()
@@ -122,11 +122,13 @@ group_n_counts <- survey %>%
     filter(group_4 != "None", !is.na(group_4)) %>%
     count(group_4, name = "n_students")
 
-# named vector for scale_color_manual / scale_shape_manual labels
-group_n <- group_n_counts %>%
+group_n <- survey_long %>%
+    filter(!is.na(Score), group_4 != "None", !is.na(group_4)) %>%  
+    distinct(Participant.ID, group_4) %>% # one row per student
+    count(group_4, name = "n_students") %>%
     mutate(label = paste0(group_4, " (n = ", n_students, ")")) %>%
     dplyr::select(group_4, label) %>%
-    deframe()
+    tibble::deframe()
 
 
 ################################################################################

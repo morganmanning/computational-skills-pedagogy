@@ -20,14 +20,14 @@ rm(list = ls())
 
 
 # format and remove first two nonsense rows of the Likert/quantitative stuff
-surveyValues <- read.csv("DataJan2026.csv", header = TRUE)
+surveyValues <- read.csv("Data/DataJan2026.csv", header = TRUE)
 surveyValues <- surveyValues[-c(1:2),]
 surveyLikert <- surveyValues[,27:87]
 head(surveyLikert)
 ncol(surveyLikert)
 
 # format and remove first two nonsense rows of the labeled data
-surveyText <- read.csv("DataJan2026_Text.csv", header = TRUE)
+surveyText <- read.csv("Data/DataJan2026_Text.csv", header = TRUE)
 surveyText <- surveyText[-c(1:2),]
 surveyTextMinusLikert <- surveyText[,c(1:26, 88:ncol(surveyText))]
 head(surveyTextMinusLikert)
