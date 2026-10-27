@@ -6,6 +6,7 @@
 library(tidyverse)
 library(dplyr)
 library(emmeans)
+library(lmerTest)
 library(ggplot2)
 library(kableExtra)
 library(showtext)
@@ -151,14 +152,14 @@ for (metric in metrics_plot) {
         filter(Metric == metric) %>%
         drop_na(Score, group_4, Time)
 
-    model <- lm(Score ~ group_4 * Time, data = mdata)
+    model <- lmer(Score ~ group_4 * Time + (1 | Participant.ID), data = mdata)
     lm_models[[metric]] <- model
 
     cat("  n observations:", nrow(mdata), "\n")
-    print(summary(model)$coefficients)
+    print(summary(model, ddf = "Kenward-Roger")$coefficients)
 
     # pull coefficients into a tidy frame for later use
-    ct <- summary(model)$coefficients
+    ct <- summary(model, ddf = "Kenward-Roger")$coefficients
     coef_df <- data.frame(
         Metric = metric,
         Term = rownames(ct),
@@ -173,21 +174,21 @@ for (metric in metrics_plot) {
             ct[, "Pr(>|t|)"] < 0.1 ~ ".",
             TRUE ~ ""
         ),
-        LCL = round(ct[, "Estimate"] - 1.96 * ct[, "Std. Error"], 3),
-        UCL = round(ct[, "Estimate"] + 1.96 * ct[, "Std. Error"], 3),
+        LCL = round(ct[, "Estimate"] - qt(0.975, ct[, "df"]) * ct[, "Std. Error"], 3),
+        UCL = round(ct[, "Estimate"] + qt(0.975, ct[, "df"]) * ct[, "Std. Error"], 3),
         stringsAsFactors = FALSE
     )
     rownames(coef_df) <- NULL
     lm_coefs <- bind_rows(lm_coefs, coef_df)
 
     # emmeans: model-predicted means at each group x time combination
-    em <- emmeans(model, ~ group_4 * Time) %>%
+    em <- emmeans(model, ~ group_4 * Time, lmer.df = "kenward-roger") %>%
         as.data.frame() %>%
         mutate(Metric = metric)
     emmeans_results <- bind_rows(emmeans_results, em)
 
     # tukey-adjusted pairwise comparisons between groups, collapsing over time
-    pairs_df <- pairs(emmeans(model, ~group_4), adjust = "tukey") %>%
+    pairs_df <- pairs(emmeans(model, ~group_4, lmer.df = "kenward-roger"), adjust = "tukey") %>%
         as.data.frame() %>%
         mutate(
             Metric = metric,
@@ -301,7 +302,7 @@ p_raw <- ggplot(
     ) +
     base_theme
 
-ggsave("../Figures/4Group_RawMeans_PrePost.png",
+ggsave("../Figures/4Group_RawMeans_PrePost.jpg",
     p_raw,
     width = 11, height = 6, bg = "white"
 )
@@ -349,7 +350,7 @@ p_emmeans <- ggplot(
     ) +
     base_theme
 
-ggsave("../Figures/4Group_Emmeans_PrePost.png",
+ggsave("../Figures/4Group_Emmeans_PrePost.jpg",
     p_emmeans,
     width = 11, height = 6, bg = "white"
 )
@@ -411,7 +412,7 @@ p_change <- ggplot(
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank())
 
-ggsave("../Figures/4Group_ChangeScores.png",
+ggsave("../Figures/4Group_ChangeScores.jpg",
        p_change, width = 11, height = 6, bg = "white")
 
 
@@ -427,7 +428,7 @@ for (metric in metrics_plot) {
     model <- lm_models[[metric]]
     if (is.null(model)) next
 
-    em <- emmeans(model, ~ group_4 * Time)
+    em <- emmeans(model, ~ group_4 * Time, lmer.df = "kenward-roger")
 
     # interaction contrast: pairwise across groups x consecutive across time (post - pre)
     # estimate = (post-pre) for group_i minus (post-pre) for group_j
@@ -607,7 +608,7 @@ if (nrow(raw_bracket_coords) > 0) {
     p_raw_brackets <- p_raw_brackets + bracket_layers(raw_bracket_coords)
 }
 
-ggsave("../Figures/4Group_RawMeans_PrePost_Brackets.png",
+ggsave("../Figures/4Group_RawMeans_PrePost_Brackets.jpg",
     p_raw_brackets,
     width = 11, height = 6, bg = "white"
 )
@@ -627,10 +628,11 @@ if (nrow(em_bracket_coords) > 0) {
     p_emmeans_brackets <- p_emmeans_brackets + bracket_layers(em_bracket_coords)
 }
 
-ggsave("../Figures/4Group_Emmeans_PrePost_Brackets.png",
+ggsave("../Figures/4Group_Emmeans_PrePost_Brackets.jpg",
     p_emmeans_brackets,
     width = 11, height = 6, bg = "white"
 )
+
 
 
 ################################################################################
@@ -678,7 +680,7 @@ p_coef <- ggplot(
     ) +
     base_theme
 
-ggsave("../Figures/CoefPlot_4group_base.png",
+ggsave("../Figures/CoefPlot_4group_base.jpg",
     p_coef,
     width = 12, height = 6, bg = "white"
 )

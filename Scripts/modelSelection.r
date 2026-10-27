@@ -1,5 +1,6 @@
 library(lme4)
 library(lmerTest)
+library(pbkrtest)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -236,7 +237,7 @@ clean_covar_label <- function(x) {
 
 ################################################################################
 # MODEL FITTING
-# all models: Score ~ group_4 * Time + covariate(s), lm, no random effects
+# all models: Score ~ group_4 * Time + covariate(s) + (1 | Participant.ID), lmer
 ################################################################################
 
 block_results <- data.frame()
@@ -255,7 +256,7 @@ for (metric in metrics) {
 
     # base model (no covariates); will be refit on each block's complete-case
     # subset for F-test; stored here for coefficient extraction only
-    base_model_full <- lm(Score ~ group_4 * Time, data = metric_data)
+    base_model_full <- lmer(Score ~ group_4 * Time + (1 | Participant.ID), data = metric_data)
 
     base_row <- data.frame(
         Metric = metric,
@@ -272,7 +273,7 @@ for (metric in metrics) {
     )
     block_results <- rbind(block_results, base_row)
 
-    ct <- summary(base_model_full)$coefficients
+    ct <- summary(base_model_full, ddf = "Kenward-Roger")$coefficients
     coef_base <- data.frame(
         Metric = metric, Model = "0_Base", Block = "Base",
         Covariate = "(base)", Model_type = "block",
@@ -306,11 +307,11 @@ for (metric in metrics) {
             next
         }
 
-        formula_str <- paste0("Score ~ group_4 * Time + ", paste(covars_present, collapse = " + "))
+        formula_str <- paste0("Score ~ group_4 * Time + ", paste(covars_present, collapse = " + "), " + (1 | Participant.ID)")
         model_name <- paste0(which(names(covariate_blocks) == block_name), "_", block_name)
 
         block_model <- tryCatch(
-            lm(as.formula(formula_str), data = block_data),
+            lmer(as.formula(formula_str), data = block_data),
             error = function(e) {
                 message("Block model error: ", e$message)
                 NULL
@@ -319,13 +320,13 @@ for (metric in metrics) {
         if (is.null(block_model)) next
 
         # refit base model on the same complete-case subset for valid F-test
-        base_on_block <- lm(Score ~ group_4 * Time, data = block_data)
-        ftest <- anova(base_on_block, block_model)
+        base_on_block <- lmer(Score ~ group_4 * Time + (1 | Participant.ID), data = block_data)
+        ftest <- KRmodcomp(block_model, base_on_block)$test["Ftest", ]
 
-        ftest_F <- round(ftest[2, "F"], 3)
-        ftest_df1 <- ftest[2, "Df"]
-        ftest_df2 <- ftest[2, "Res.Df"]
-        ftest_p <- round(ftest[2, "Pr(>F)"], 4)
+        ftest_F <- round(ftest$stat, 3)
+        ftest_df1 <- ftest$ndf
+        ftest_df2 <- round(ftest$ddf, 1)
+        ftest_p <- round(ftest$p.value, 4)
         ftest_sig <- case_when(
             ftest_p < 0.001 ~ "***",
             ftest_p < 0.01 ~ "**",
@@ -354,7 +355,7 @@ for (metric in metrics) {
         )
         block_results <- rbind(block_results, fit_row)
 
-        ct <- summary(block_model)$coefficients
+        ct <- summary(block_model, ddf = "Kenward-Roger")$coefficients
         coef_rows <- data.frame(
             Metric = metric, Model = model_name, Block = block_name,
             Covariate = "(block)", Model_type = "block",
@@ -384,9 +385,9 @@ for (metric in metrics) {
         single_data <- fix_ordered_contrasts(single_data)
         if (nrow(single_data) < 20) next
 
-        formula_str <- paste0("Score ~ group_4 * Time + ", covar)
+        formula_str <- paste0("Score ~ group_4 * Time + ", covar, " + (1 | Participant.ID)")
         single_model <- tryCatch(
-            lm(as.formula(formula_str), data = single_data),
+            lmer(as.formula(formula_str), data = single_data),
             error = function(e) {
                 message("Single model error: ", e$message)
                 NULL
@@ -395,9 +396,9 @@ for (metric in metrics) {
         if (is.null(single_model)) next
 
         # refit base on same data for F-test
-        base_on_single <- lm(Score ~ group_4 * Time, data = single_data)
-        ftest_s <- anova(base_on_single, single_model)
-        ftest_p_s <- round(ftest_s[2, "Pr(>F)"], 4)
+        base_on_single <- lmer(Score ~ group_4 * Time + (1 | Participant.ID), data = single_data)
+        ftest_s <- KRmodcomp(single_model, base_on_single)$test["Ftest", ]
+        ftest_p_s <- round(ftest_s$p.value, 4)
         ftest_sig_s <- case_when(
             ftest_p_s < 0.001 ~ "***",
             ftest_p_s < 0.01 ~ "**",
@@ -417,7 +418,7 @@ for (metric in metrics) {
         )
         single_fit_info <- rbind(single_fit_info, info_row)
 
-        ct <- summary(single_model)$coefficients
+        ct <- summary(single_model, ddf = "Kenward-Roger")$coefficients
         covar_terms <- rownames(ct)[grepl(covar, rownames(ct))]
         if (length(covar_terms) == 0) next
 
@@ -534,7 +535,7 @@ for (block_name in names(covariate_blocks)) {
         base_theme
 
     ggsave(
-        paste0("../Figures/BlockVsSingle_", block_name, ".png"),
+        paste0("../Figures/BlockVsSingle_", block_name, ".jpg"),
         p_forest,
         width = 12, height = max(3, length(unique(plot_data$y_label)) * 0.5 + 2),
         bg = "white"
@@ -871,7 +872,7 @@ p_likert <- ggplot(
     ) +
     guides(fill = guide_legend(reverse = TRUE))
 
-ggsave("../Figures/Likert_JobSearch_DreamJob.png",
+ggsave("../Figures/Likert_JobSearch_DreamJob.jpg",
     p_likert,
     width = 9, height = 4, bg = "white"
 )
@@ -901,9 +902,9 @@ for (metric in metrics) {
     model_data <- metric_data[complete.cases(metric_data[, covar_vec, drop = FALSE]), ]
     model_data <- fix_ordered_contrasts(model_data)
 
-    formula_str <- paste0("Score ~ group_4 * Time + ", paste(covar_vec, collapse = " + "))
+    formula_str <- paste0("Score ~ group_4 * Time + ", paste(covar_vec, collapse = " + "), " + (1 | Participant.ID)")
     best_model <- tryCatch(
-        lm(as.formula(formula_str), data = model_data),
+        lmer(as.formula(formula_str), data = model_data),
         error = function(e) {
             message("Error: ", e$message)
             NULL
@@ -912,14 +913,14 @@ for (metric in metrics) {
     if (is.null(best_model)) next
     best_block_models[[metric]] <- best_model
 
-    em <- emmeans(best_model, ~ group_4 * Time) %>%
+    em <- emmeans(best_model, ~ group_4 * Time, lmer.df = "kenward-roger") %>%
         as.data.frame() %>%
         mutate(Metric = metric, Best_block = best_block)
     best_block_emmeans <- rbind(best_block_emmeans, em)
 
     ic <- tryCatch(
         contrast(
-            emmeans(best_model, ~ group_4 * Time),
+            emmeans(best_model, ~ group_4 * Time, lmer.df = "kenward-roger"),
             interaction = c(group_4 = "pairwise", Time = "consec"),
             adjust = "sidak"
         ) %>%
@@ -1113,7 +1114,7 @@ if (nrow(best_block_bracket_coords) > 0) {
         )
 }
 
-ggsave("../Figures/BestBlock_Emmeans_PrePost.png",
+ggsave("../Figures/BestBlock_Emmeans_PrePost.jpg",
     p_best_block_emmeans,
     width = 12, height = 6, bg = "white"
 )
@@ -1172,7 +1173,7 @@ p_single_coef <- ggplot(
     ) +
     base_theme
 
-ggsave("../Figures/SingleCovariate_SigCoefs.png",
+ggsave("../Figures/SingleCovariate_SigCoefs.jpg",
     p_single_coef,
     width = 12, height = 6, bg = "white"
 )
@@ -1274,7 +1275,7 @@ p_block_coef <- ggplot(
     base_theme +
     theme(plot.caption = element_text(hjust = 0, face = "italic"))
 
-ggsave("../Figures/CoefPlot_BestBlock.png",
+ggsave("../Figures/CoefPlot_BestBlock.jpg",
     p_block_coef,
     width = 12, height = 9, bg = "white"
 )
